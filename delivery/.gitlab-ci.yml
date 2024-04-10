@@ -1,0 +1,14 @@
+# https://docs.gitlab.com/ee/ci/docker/using_docker_build.html
+image: docker:24.0.5
+
+services:
+  - docker:24.0.5-dind
+
+stages:
+  - build
+
+# Собираем Docker Image
+docker-build:
+  stage: build
+  script:
+    - docker build .
