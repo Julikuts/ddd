@@ -7,21 +7,76 @@
 // Completed (завершен)
 
 using CSharpFunctionalExtensions;
+using Primitives;
 
 namespace DeliveryApp.Core.Domain.OrderAggregate
 {
-    public class OrderStatus:ValueObject
+    public class OrderStatus : Entity<int>
     {
-        public OrderStatusEnum OrderStatusValue { get; protected set; }
-
-        public OrderStatus(OrderStatusEnum status)
+        public static readonly OrderStatus Created = new(1, nameof(Created).ToLowerInvariant());
+        public static readonly OrderStatus Assigned = new(2, nameof(Assigned).ToLowerInvariant());
+        public static readonly OrderStatus Completed = new(3, nameof(Completed).ToLowerInvariant());
+    
+        /// <summary>
+        /// Ошибки, которые может возвращать сущность
+        /// </summary>
+        public static class Errors
         {
-            OrderStatusValue = status;
+            public static Error StatusIsWrong()
+            {
+                return new($"{nameof(OrderStatus).ToLowerInvariant()}.is.wrong", 
+                    $"Не верное значение. Допустимые значения: {nameof(OrderStatus).ToLowerInvariant()}: {string.Join(",", List().Select(s => s.Name))}");
+            }
+        }
+        
+        /// <summary>
+        ///     Название
+        /// </summary>
+        public string Name { get; }
+
+        /// <summary>
+        /// Ctr
+        /// </summary>
+        protected OrderStatus()
+        {}
+    
+        /// <summary>
+        /// Ctr
+        /// </summary>
+        /// <param name="id">Идентификатор</param>
+        /// <param name="name">Название</param>
+        protected OrderStatus(int id, string name)
+        {
+            Id = id;
+            Name = name;
+        }
+        
+        /// <summary>
+        /// Список всех значений списка
+        /// </summary>
+        /// <returns>Значения списка</returns>
+        public static IEnumerable<OrderStatus> List()
+        {
+            yield return Created;
+            yield return Assigned;
+            yield return Completed;
         }
 
-        protected override IEnumerable<IComparable> GetEqualityComponents()
+        // protected override IEnumerable<IComparable> GetEqualityComponents()
+        // {
+        //    yield return OrderStatusValue;
+        // }
+
+   public static OrderStatus From(int id)
         {
-           yield return OrderStatusValue;
+            var state = List().SingleOrDefault(s => s.Id == id);
+            return state;
+        }
+   public static OrderStatus FromName(string name)
+        {
+            var state = List()
+                .SingleOrDefault(s => string.Equals(s.Name, name, StringComparison.CurrentCultureIgnoreCase));
+            return state;
         }
     }
 

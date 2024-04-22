@@ -16,6 +16,8 @@ namespace DeliveryApp.Core.Domain.SharedKernel
         /// <summary>
         ///  Конструктор создания класса с координатами
         /// </summary>
+        public static readonly Location MinLocation = new Location(1,1);
+        public static readonly Location MaxLocation = new Location(10,10);
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <exception cref="Exception"></exception>
@@ -28,7 +30,14 @@ namespace DeliveryApp.Core.Domain.SharedKernel
             Y = y;
 
         }
-
+        public static Location CreateRandom()
+        {
+            var rnd = new Random();
+            var x  = rnd.Next(MinLocation.X, MaxLocation.X);
+            var y  = rnd.Next(MinLocation.X, MaxLocation.Y);
+            var location = new Location(x, y);
+            return location;
+        }
         /// <summary>
         /// Координата Х
         /// </summary>

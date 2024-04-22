@@ -32,11 +32,13 @@ namespace DeliveryApp.Core.Domain.OrderAggregate
                 throw new ArgumentNullException(nameof(weight));
             }
             
+       
             Id = id;
             Location = location;
             Weight = weight;
             OrderStatus = OrderStatusEnum.Created;
         }
+ protected Order() { }
        
         // Заказ может быть назначен на курьера
         // При назначении заказ переходит в статус Assigned (назначен на курьера),

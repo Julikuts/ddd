@@ -2,9 +2,8 @@ using DeliveryApp.Core.Ports;
 using DeliveryApp.Infrastructure;
 using DeliveryApp.Infrastructure.Adapters.Postgres;
 using Microsoft.EntityFrameworkCore;
-using Primitives;
 
-namespace DeliveryApp.Api
+namespace DeliveryApp.Ui
 {
     public class Startup
     {
@@ -24,24 +23,10 @@ namespace DeliveryApp.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-            // Health Checks
-            services.AddHealthChecks();
-
-            // Cors
-            services.AddCors(options =>
-            {
-                options.AddDefaultPolicy(
-                    policy =>
-                    {
-                        policy.AllowAnyOrigin(); // Не делайте так в проде!
-                    });
-            });
-            
             // Configuration
             services.Configure<Settings>(options => Configuration.Bind(options));
             var connectionString = Configuration["CONNECTION_STRING"];
-            var geoServiceGrpcHost = Configuration["GEO_SERVICE_GRPC_HOST"];
-            var messageBrokerHost = Configuration["MESSAGE_BROKER_HOST"];
+            var rabbitMqHost = Configuration["RABBIT_MQ_HOST"];
             
             // БД 
             services.AddDbContext<ApplicationDbContext>(options =>
@@ -50,15 +35,17 @@ namespace DeliveryApp.Api
                         npgsqlOptionsAction: sqlOptions =>
                         {
                             sqlOptions.MigrationsAssembly("DeliveryApp.Infrastructure");
+                            sqlOptions.EnableRetryOnFailure(maxRetryCount: 15, maxRetryDelay: TimeSpan.FromSeconds(30), errorCodesToAdd: null);                        
                         });
-                    options.EnableSensitiveDataLogging();
+                    options.EnableSensitiveDataLogging();                
                 }
             );
-            services.AddTransient<IUnitOfWork, UnitOfWork>();
-            
-            // Ports & Adapters
+        
+            //Postgres
             services.AddTransient<ICourierRepository, CourierRepository>();
             services.AddTransient<IOrderRepository, OrderRepository>();
+
+            services.AddHealthChecks();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

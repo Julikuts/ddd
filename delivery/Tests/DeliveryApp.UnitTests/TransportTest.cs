@@ -9,7 +9,7 @@ public class TransportTest
     [InlineData(1)]
     public void TransportCanBeUsed(int weightValue)
     {
-        var transport = new Transport(1, "test", TransportTypeEnum.Pedestrian);
+        var transport = new Transport(1, "test");
         Assert.True(transport.CanBeUsed(new Weight(weightValue)));
     }
   }

@@ -10,7 +10,7 @@ namespace DeliveryApp.UnitTests
         [Fact]
         public void CourierCreatedPedestrian()
         {
-            var courier = new Courier("", new Transport(1, "", TransportTypeEnum.Pedestrian));
+            var courier = new Courier("", new Transport(1, ""));
             Assert.Equal(courier.Location.X, 1);
             Assert.Equal(courier.Location.Y, 1);
 
@@ -18,7 +18,7 @@ namespace DeliveryApp.UnitTests
         [Fact]
         public void CourierCreatedBicycle()
         {
-            var courier = new Courier("", new Transport(1, "", TransportTypeEnum.Bicycle));
+            var courier = new Courier("", new Transport(1, ""));
             Assert.Equal(courier.Location.X, 1);
             Assert.Equal(courier.Location.Y, 1);
 
@@ -27,7 +27,7 @@ namespace DeliveryApp.UnitTests
         [Fact]
         public void CourierMoveTo55Pedestrian()
         {
-            var courier = new Courier("", new Transport(1, "", TransportTypeEnum.Pedestrian));
+            var courier = new Courier("", new Transport(1, ""));
             courier.Move(new Location(5, 5));
             Assert.Equal(courier.Location.X, 5);
             Assert.Equal(courier.Location.Y, 5);
@@ -36,7 +36,7 @@ namespace DeliveryApp.UnitTests
          [Fact]
         public void CourierMoveTo55Bicycle()
         {
-            var courier = new Courier("", new Transport(1, "", TransportTypeEnum.Bicycle));
+            var courier = new Courier("", new Transport(1, ""));
             courier.Move(new Location(5, 5));
             Assert.Equal(courier.Location.X, 5);
             Assert.Equal(courier.Location.Y, 5);
@@ -46,7 +46,7 @@ namespace DeliveryApp.UnitTests
         [Fact]
         public void CourierMoveTo15()
         {
-            var courier = new Courier("", new Transport(1, "", TransportTypeEnum.Pedestrian));
+            var courier = new Courier("", new Transport(1, ""));
             courier.Move(new Location(1, 5));
             Assert.Equal(courier.Location.X, 1);
             Assert.Equal(courier.Location.Y, 5);
@@ -55,7 +55,7 @@ namespace DeliveryApp.UnitTests
         [Fact]
         public void CourierMoveTo51()
         {
-            var courier = new Courier("", new Transport(1, "", TransportTypeEnum.Pedestrian));
+            var courier = new Courier("", new Transport(1, ""));
             courier.Move(new Location(5, 1));
             Assert.Equal(courier.Location.X, 5);
             Assert.Equal(courier.Location.Y, 1);
@@ -63,7 +63,7 @@ namespace DeliveryApp.UnitTests
         }
         public void CourierMoveTo51Move32()
         {
-            var courier = new Courier("", new Transport(1, "", TransportTypeEnum.Pedestrian));
+            var courier = new Courier("", new Transport(1, ""));
             courier.Move(new Location(5, 1));
             Assert.Equal(courier.Location.X, 5);
             Assert.Equal(courier.Location.Y, 1);
@@ -76,7 +76,7 @@ namespace DeliveryApp.UnitTests
         [Fact]
         public void CourierMoveTo1111()
         {
-            var courier = new Courier("", new Transport(1, "", TransportTypeEnum.Pedestrian));
+            var courier = new Courier("", new Transport(1, ""));
             
             //act
             Action act = () => courier.Move(new Location(11, 11));

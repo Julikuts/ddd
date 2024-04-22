@@ -19,10 +19,9 @@ namespace DeliveryApp.Core.Domain.CourierAggregate
 {
     public class Transport : Entity<int>
     {
-        public Transport(int id, string name, TransportTypeEnum transportType)
+        public Transport(int id, string name)
         {
             Id = id; Name = name;
-            TransportType = transportType;
 
         }
 
@@ -31,25 +30,22 @@ namespace DeliveryApp.Core.Domain.CourierAggregate
         public string Name { get; protected set; }
 
         // Speed (скорость)
-        public int Speed => 
-        TransportType == TransportTypeEnum.Pedestrian ? 1 :
-        TransportType == TransportTypeEnum.Bicycle ? 2 :
-        TransportType == TransportTypeEnum.Scooter ? 3 :
-        TransportType == TransportTypeEnum.Car ? 4 : 0;
+        public int Speed =>
+        Id == (int)TransportTypeEnum.Pedestrian ? 1 :
+        Id == (int)TransportTypeEnum.Bicycle ? 2 :
+        Id == (int)TransportTypeEnum.Scooter ? 3 :
+        Id == (int)TransportTypeEnum.Car ? 4 : 0;
 
 
         // Capacity (грузоподъемность)
 
-        public Weight Capacity => 
-        TransportType == TransportTypeEnum.Pedestrian ? new Weight(1) :
-        TransportType == TransportTypeEnum.Bicycle ? new Weight(4) :
-        TransportType == TransportTypeEnum.Scooter ? new Weight(6) :
-        TransportType == TransportTypeEnum.Car ? new Weight(8) : new Weight(0);
+        public Weight Capacity =>
+        Id == (int) TransportTypeEnum.Pedestrian ? new Weight(1) :
+        Id == (int) TransportTypeEnum.Bicycle ? new Weight(4) :
+        Id == (int) TransportTypeEnum.Scooter ? new Weight(6) :
+        Id == (int) TransportTypeEnum.Car ? new Weight(8) : new Weight(0);
 
 
-        public TransportTypeEnum TransportType { get; protected set; }
-
-        
         /// <summary>
         /// "может ли данный транспорт перевезти определенный вес?"
         /// </summary>
@@ -58,5 +54,27 @@ namespace DeliveryApp.Core.Domain.CourierAggregate
             return Capacity.WeightValue <= weight.WeightValue;
 
         }
+
+        public static List<Transport> GetAllPossibleTransports()
+        {
+            var tr = new List<Transport>();
+            tr.Add(Pedestrian);
+            tr.Add(Bicycle);
+            tr.Add(Scooter);
+            tr.Add(Car);
+            return tr;
+        }
+
+        public static Transport Pedestrian =>
+            new(1, nameof(TransportTypeEnum.Pedestrian));
+
+        public static Transport Bicycle =>
+           new(2, nameof(TransportTypeEnum.Bicycle));
+
+        public static Transport Scooter =>
+            new(3, nameof(TransportTypeEnum.Scooter));
+
+        public static Transport Car =>
+            new Transport(4, nameof(TransportTypeEnum.Car));
     }
 }

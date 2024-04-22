@@ -22,8 +22,10 @@ namespace DeliveryApp.Core.Domain.CourierAggregate
         // Status (статус курьера)
         public CourierStatusEnum CourierStatus;
 
-        public Courier(string name, Transport transport)
+        protected Courier() {}
+        public Courier(string name, Transport transport):this()
         {
+            Id = Guid.NewGuid();
             Name = name;
             Transport = transport;
             Location = new Location(1, 1);

@@ -14,17 +14,36 @@ namespace DeliveryApp.Core.Domain.CourierAggregate
     /// <summary>
     /// Бизнес-правила CourierStatus:
     /// </summary>
-    public class CurierStatus : ValueObject
+    public class CourierStatus : Entity<int>
     {
-        public CourierStatusEnum CourierStatusValue { get; protected set; }
-        public CurierStatus(CourierStatusEnum status)
+        public static readonly CourierStatus NotAvailable = new(1, nameof(NotAvailable).ToLowerInvariant());
+        public static readonly CourierStatus Ready = new(2, nameof(Ready).ToLowerInvariant());
+        public static readonly CourierStatus Busy = new(3, nameof(Busy).ToLowerInvariant());
+
+        public string Name { get; }
+        protected CourierStatus()
+        { }
+
+        /// <summary>
+        /// Ctr
+        /// </summary>
+        /// <param name="id">Идентификатор</param>
+        /// <param name="name">Название</param>
+        protected CourierStatus(int id, string name)
         {
-            CourierStatusValue = status;
+            Id = id;
+            Name = name;
         }
 
-        protected override IEnumerable<IComparable> GetEqualityComponents()
+        public static IEnumerable<CourierStatus> List()
         {
-            yield return CourierStatusValue;
+            yield return NotAvailable;
+            yield return Ready;
+            yield return Busy;
         }
+        // protected IEnumerable<IComparable> GetEqualityComponents()
+        // {
+        //     yield return CourierStatus;
+        // }
     }
 }

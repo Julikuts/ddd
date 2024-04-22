@@ -17,6 +17,11 @@ namespace DeliveryApp.Core.Domain.SharedKernel
     public class Weight : ValueObject
     {
         public int WeightValue { get; protected set; }
+        protected Weight()
+        {
+            
+        }
+        
         public Weight(int weight)
         {
             if (weight < 1) throw new Exception("Нельзя задавать отрицательный вес");

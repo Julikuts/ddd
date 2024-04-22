@@ -1,13 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
 
-namespace Primitives
+namespace Primitives;
+
+public interface IUnitOfWork : IDisposable
 {
-    public interface IUnitOfWork : IDisposable
-    {
-        Task<bool> SaveEntitiesAsync(CancellationToken cancellationToken = default);
+    public Task<bool> SaveEntitiesAsync(CancellationToken cancellationToken = default);
 
-        Task<IDbContextTransaction> BeginTransactionAsync();
+    public Task<IDbContextTransaction> BeginTransactionAsync();
 
-        Task CommitTransactionAsync(IDbContextTransaction transaction);
-    }
+    public Task CommitTransactionAsync(IDbContextTransaction transaction);
 }

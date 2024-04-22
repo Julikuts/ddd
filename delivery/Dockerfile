@@ -7,7 +7,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # copy all the layers' csproj files into respective folders
-COPY "DeliveryApp.Api/DeliveryApp.Api.csproj" "DeliveryApp.Api/DeliveryApp.Api.csproj"
+COPY "DeliveryApp.Ui/DeliveryApp.Ui.csproj" "DeliveryApp.Ui/DeliveryApp.Ui.csproj"
 COPY "DeliveryApp.Core/DeliveryApp.Core.csproj" "DeliveryApp.Core/DeliveryApp.Core.csproj"
 COPY "DeliveryApp.Infrastructure/DeliveryApp.Infrastructure.csproj" "DeliveryApp.Infrastructure/DeliveryApp.Infrastructure.csproj"
 COPY "Tests/DeliveryApp.ComponentTests/DeliveryApp.ComponentTests.csproj" "Tests/DeliveryApp.ComponentTests/DeliveryApp.ComponentTests.csproj"
@@ -17,7 +17,7 @@ COPY "Utils/Primitives/Primitives.csproj" "Utils/Primitives/Primitives.csproj"
 COPY "NuGet.config" "NuGet.config"
 
 # run restore over API project - this pulls restore over the dependent projects as well
-RUN dotnet restore "DeliveryApp.Api/DeliveryApp.Api.csproj"
+RUN dotnet restore "DeliveryApp.Ui/DeliveryApp.Ui.csproj"
 
 #Copy all the source code into the Build Container
 COPY . .
@@ -25,7 +25,7 @@ COPY . .
 # Run dotnet publish in the Build Container
 # Generates output available in /app/build
 # Since the current directory is /app
-WORKDIR /src/DeliveryApp.Api
+WORKDIR /src/DeliveryApp.Ui
 RUN dotnet build -c Release -o /app/build
 
 FROM build as unittest
@@ -53,4 +53,4 @@ COPY --from=publish /app/publish .
 # Entrypoint is for executables (such as exe, dll)
 # Which cannot be overriden by run command
 # or docker-compose
-ENTRYPOINT ["dotnet", "DeliveryApp.Api.dll"]
+ENTRYPOINT ["dotnet", "DeliveryApp.Ui.dll"]

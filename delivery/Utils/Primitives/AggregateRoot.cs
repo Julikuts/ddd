@@ -6,6 +6,8 @@ namespace Primitives
     {
         private readonly List<IDomainEvent> _domainEvents = new();
 
+        public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents;
+
         protected Aggregate(Guid id) : base(id)
         {
         }
