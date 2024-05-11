@@ -1,55 +1,105 @@
+﻿using System.Diagnostics.CodeAnalysis;
 using CSharpFunctionalExtensions;
+using Primitives;
 
 namespace DeliveryApp.Core.Domain.SharedKernel
 {
-    // Бизнес-правила Location:
-
-    // Location - это координата на доске, она состоит из X(горизонталь) и Y (вертикаль)
-    // Должна быть возможность рассчитать расстояние между двумя  Location
-    // Расстояние между Location - это количество ходов по X и Y, которое необходимо сделать курьеру чтобы достигнуть точки. (шаги по X + шаги по Y)
-    // Минимально возможная для установки координата 1,1
-    // Максимально возможная для установки координата 10,10
-    // 2 координаты равны, если их X и Y равны, обеспечьте функционал проверки на эквивалентность
-    // Нельзя изменять объект Location после создания 
+    /// <summary>
+    /// Координата
+    /// </summary>
     public class Location : ValueObject
     {
         /// <summary>
-        ///  Конструктор создания класса с координатами
+        /// Макимально возможная координата
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <exception cref="Exception"></exception>
-        public Location(int x, int y)
-        {
-            if (x < 1 || x > 10 || y < 1 || y > 10)
-                throw new Exception("Значение должно быть от 1 до 10");
+        public static readonly Location MinLocation = new Location(1, 1);
 
+        /// <summary>
+        /// Макимально возможная координата
+        /// </summary>
+        public static readonly Location MaxLocation = new Location(10, 10);
+
+        /// <summary>
+        /// Горизонталь
+        /// </summary>
+        public int X { get; }
+
+        /// <summary>
+        /// Вертикаль
+        /// </summary>
+        public int Y { get; }
+
+        /// <summary>
+        /// Ctr
+        /// </summary>
+        [ExcludeFromCodeCoverage]
+        private Location()
+        { }
+
+        /// <summary>
+        /// Ctr
+        /// </summary>
+        /// <param name="x">Горизонталь</param>
+        /// <param name="y">Вертикаль</param>
+        private Location(int x, int y) : this()
+        {
             X = x;
             Y = y;
-
         }
 
         /// <summary>
-        /// Координата Х
+        /// Factory Method
         /// </summary>
-        public int X { get; protected set; }
+        /// <param name="x">Горизонталь</param>
+        /// <param name="y">Вертикаль</param>
+        /// <returns>Результат</returns>
+        public static Result<Location, Error> Create(int x, int y)
+        {
+            if (x < MinLocation.X || x > MaxLocation.X) return GeneralErrors.ValueIsInvalid(nameof(x));
+            if (y < MinLocation.Y || y > MaxLocation.Y) return GeneralErrors.ValueIsInvalid(nameof(y));
+
+            return new Location(x, y);
+        }
 
         /// <summary>
-        /// Координата Y
+        /// Создать рандомную координату
         /// </summary>
-        public int Y { get; protected set; }
+        /// <returns>Результат</returns>
+        public static Result<Location, Error> CreateRandom()
+        {
+            var rnd = new Random();
+            var x = rnd.Next(MinLocation.X, MaxLocation.X);
+            var y = rnd.Next(MinLocation.X, MaxLocation.Y);
+            var location = new Location(x, y);
+            return location;
+        }
 
+        /// <summary>
+        /// Рассчитать дистанцию
+        /// </summary>
+        /// <param name="targetLocation">Конечная координата</param>
+        /// <returns>Результат</returns>
+        public Result<int, Error> DistanceTo(Location targetLocation)
+        {
+            // Считаем разницу
+            var diffX = Math.Abs(X - targetLocation.X);
+            var diffY = Math.Abs(Y - targetLocation.Y);
+                
+            // Считаем дистанцию
+            var distance = diffX + diffY; 
+            return distance;
+        }
+
+        /// <summary>
+        /// Перегрузка для определения идентичности
+        /// </summary>
+        /// <returns>Результат</returns>
+        /// <remarks>Идентичность будет происходить по совокупности полей указанных в методе</remarks>
+        [ExcludeFromCodeCoverage]
         protected override IEnumerable<IComparable> GetEqualityComponents()
         {
             yield return X;
             yield return Y;
         }
-
-        /// <summary>
-        ///  расчитывает расстояние по координатам
-        /// </summary>
-        /// <param name="to"></param>
-        /// <returns></returns>
-        public int GetDistanceTo(Location to) => Math.Abs(to.X - X) + Math.Abs(to.Y - Y);
     }
 }

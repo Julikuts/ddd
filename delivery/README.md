@@ -1,6 +1,6 @@
-﻿# OpenApi
+﻿# OpenApi (вызывать из папки DeliveryApp.Api/Adapters/Http/Contract)
 ```
-openapi-generator generate -i https://gitlab.com/microarch-ru/microservices/dotnet/system-design/-/raw/main/services/delivery/contracts/openapi.yml -g aspnetcore -o ./Contract --package-name Api --additional-properties classModifier=abstract --additional-properties operationResultTask=true
+openapi-generator generate -i https://gitlab.com/microarch-ru/microservices/dotnet/system-design/-/raw/main/services/delivery/contracts/openapi.yml -g aspnetcore -o . --package-name Api --additional-properties classModifier=abstract --additional-properties operationResultTask=true
 ```
 # БД
 ```
@@ -13,7 +13,7 @@ dotnet add package Microsoft.EntityFrameworkCore.Design
 # Миграции
 ```
 dotnet ef migrations add Init --startup-project ./DeliveryApp.Api --project ./DeliveryApp.Infrastructure
-dotnet ef database update --startup-project ./DeliveryApp.Api --connection "Server=localhost;Port=5432;User Id=username;Password=secret;Database=delivery;"
+dotnet ef database update --startup-project ./DeliveryApp.Api --connection "Server=localhost;Port=5432;User Id=postgres;Password=postgres;Database=delivery;"
 ```
 # Docker
 ```

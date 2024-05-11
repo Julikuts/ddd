@@ -1,107 +1,193 @@
-// Бизнес-правила Courier:
-
-// Courier - это курьер, он состоит из:
-using System.ComponentModel.DataAnnotations;
+﻿using System.Diagnostics.CodeAnalysis;
+using CSharpFunctionalExtensions;
 using DeliveryApp.Core.Domain.SharedKernel;
 using Primitives;
 
 namespace DeliveryApp.Core.Domain.CourierAggregate
 {
+    /// <summary>
+    ///     Курьер
+    /// </summary>
     public class Courier : Aggregate
     {
-        // Name (имя курьера)
-        public string Name { get; protected set; }
-        // Transport (транспорт курьера)
-
-        public Transport Transport;
-
-        // Location (местоположение курьера)
-
-        public Location Location;
-
-        // Status (статус курьера)
-        public CourierStatusEnum CourierStatus;
-
-        public Courier(string name, Transport transport)
+        public static class Errors
         {
-            Name = name;
-            Transport = transport;
-            Location = new Location(1, 1);
-            CourierStatus = CourierStatusEnum.NotAvailable;
-        }
-        // Курьер может начать рабочий день
-        // При этом статус меняется на Ready (готов к работе)
-        // Если он занят (выполняет заказ), то он не может это сделать
-        public void CourierCanStart()
-        {
-            if (CourierStatus == CourierStatusEnum.Busy) return;
-            CourierStatus = CourierStatusEnum.Ready;
-        }
-
-
-        // Курьер может закончить рабочий день
-        // При этом статус меняется на NotAvailable (недоступен)
-        // Если он занят (выполняет заказ), то он не может это сделать
-
-        public void CourierStop()
-        {
-            if (CourierStatus == CourierStatusEnum.Busy) return;
-            CourierStatus = CourierStatusEnum.NotAvailable;
-        }
-        // Заказ может быть назначен на курьера
-        // При этом статус курьера меняется на Busy (занят)
-        // Если курьер уже Busy (занят), то нельзя его занять, это ошибка
-        // Если курьер NotAvailable (недоступен), то нельзя его занять, это ошибка
-
-        public void CourierStart()
-        {
-            if (CourierStatus == CourierStatusEnum.Busy ||
-                CourierStatus == CourierStatusEnum.NotAvailable)
-                throw new Exception("Курьер недоступен");
-            CourierStatus = CourierStatusEnum.Busy;
-        }
-
-        public void Move(Location targetLocation)
-        {
-            var step = Transport.Speed;
-            var distance = targetLocation.GetDistanceTo(Location);
-            if (distance <= 0) return;
-
-            while (true)
+            public static Error TryStopWorkingWithIncompleteDelivery()
             {
-                var diffX = targetLocation.X - Location.X;
-                var diffY = targetLocation.Y - Location.Y;
+                return new($"{nameof(Courier).ToLowerInvariant()}.try.stop.working.with.incomplete.delivery",
+                    "Нельзя прекратить работу, если есть незавершенная доставка");
+            }
 
-                if (diffX <= 0 && diffY <= 0) { break; }
-                if (step <= diffX)
-                    Location = new Location(Location.X + step,Location.Y);
+            public static Error TryStartWorkingWhenAlreadyStarted()
+            {
+                return new($"{nameof(Courier).ToLowerInvariant()}.try.start.working.when.already.started",
+                    "Нельзя начать работу, если ее уже начали ранее");
+            }
 
-                if (step <= diffY)
-                    Location = new Location(Location.X,Location.Y+step);
-
+            public static Error TryAssignOrderWhenNotAvailable()
+            {
+                return new($"{nameof(Courier).ToLowerInvariant()}.try.assign.order.when.not.available",
+                    "Нельзя взять заказ в работу, если курьер не начал рабочий день");
+            }
+            
+            public static Error TryAssignOrderWhenCourierHasAlreadyBusy()
+            {
+                return new($"{nameof(Courier).ToLowerInvariant()}.try.assign.order.when.courier.has.already.busy",
+                    "Нельзя взять заказ в работу, если курьер уже занят");
             }
         }
-    
-    // Курьер может переместиться на один шаг в сторону Location заказа
-    // Размер шага курьера равен скорости его транспорта, к примеру, если скорость велосипеда = 2, 
-    // это значит, что шаг курьера на велосипеде = 2
-    // Курьер может ходить как горизонтально, так и вертикально, но не наискосок. 
-    // К примеру, если шаг курьера =2, то он может сделать 1 шаг по горизонтали и 1 шаг 
-    // по вертикали или по 2 шага по прямой.
-    // Если транспорт курьера движется, к примеру, со скоростью 4 клетки за 1 шаг, 
-    // а заказ находится ближе, к примеру в 2 клетках, то курьер должен переместиться 
-    // только до Location заказа
-    // Если курьер достиг Location заказа, то
-    // Заказ завершается (переходит в статус Completed)
-    // Курьер становится свободным (переходит в статус Ready)
-    // Курьер должен уметь возвращать количество шагов, которое он потенциально 
-    // затратит на путь до локации заказа. При расчете нужно участь скорость 
-    // транспорта курьера. К примеру:
-    // Есть курьер на велосипеде
-    // Курьер находится в точке (1,1)
-    // Заказ находится в точке (5,5)
-    // Курьеру надо пройти 4 клетки по горизонтали и 4 по вертикали, чтобы оказаться в точке доставки заказа. Суммарная дистанция равна - 8 клеток
-    // Транспорт у курьера "Велосипед" и он едет со скоростью 2 клетки за 1 шаг
-    // Итого - курьеру нужно 4 шага (по 2 клетки), чтобы доставить заказ
-}
+
+        /// <summary>
+        /// Имя
+        /// </summary>
+        public string Name { get; private set; }
+
+        /// <summary>
+        /// Вид транспорта
+        /// </summary>
+        public Transport Transport { get; private set; }
+
+        /// <summary>
+        /// Геопозиция (X,Y)
+        /// </summary>
+        public Location Location { get; private set; }
+
+        /// <summary>
+        /// Статус курьера
+        /// </summary>
+        public Status Status { get; private set; }
+
+        /// <summary>
+        /// Ctr
+        /// </summary>
+        [ExcludeFromCodeCoverage]
+        private Courier()
+        { }
+
+        /// <summary>
+        /// Ctr
+        /// </summary>
+        /// <param name="name">Имя</param>
+        /// <param name="transport">Транспорт</param>
+        private Courier(string name, Transport transport) : this()
+        {
+            Id = Guid.NewGuid();
+            Name = name;
+            Transport = transport;
+            Location = Location.MinLocation;
+            Status = Status.NotAvailable;
+        }
+
+        /// <summary>
+        ///  Factory Method
+        /// </summary>
+        /// <param name="name">Имя</param>
+        /// <param name="transport">Транспорт</param>
+        /// <returns>Результат</returns>
+        public static Result<Courier, Error> Create(string name, Transport transport)
+        {
+            if (string.IsNullOrEmpty(name)) return GeneralErrors.ValueIsRequired(nameof(name));
+            if (transport == null) return GeneralErrors.ValueIsRequired(nameof(transport));
+
+            return new Courier(name, transport);
+        }
+
+        /// <summary>
+        /// Изменить местоположение
+        /// </summary>
+        /// <param name="targetLocation">Геопозиция</param>
+        /// <returns>Результат</returns>
+        public Result<object, Error> Move(Location targetLocation)
+        {
+            if (targetLocation == null) return GeneralErrors.ValueIsRequired(nameof(targetLocation));
+            if (Location == targetLocation) return new object();
+        
+            var cruisingRange = Transport.Speed; //запас хода
+        
+            var newX = Location.X;
+            var newY = Location.Y;
+
+            if (newX != targetLocation.X)
+            {
+                newX = Math.Min(Location.X + cruisingRange, targetLocation.X);
+                var traveledX = targetLocation.X - Location.X; // сколько прошли по X
+                cruisingRange -= traveledX;
+            }
+        
+            // если ещё остался запас хода и курьер не в точке Y
+            if (newY != targetLocation.Y && cruisingRange > 0)
+            {
+                newY = Math.Min(Location.Y + cruisingRange, targetLocation.Y);
+            }
+
+            var reachedLocation = Location.Create(newX, newY).Value;
+
+            // Если курьер выполнял заказ, то он становится свободным 
+            if (Status == Status.Busy && reachedLocation == targetLocation)
+            {
+                Status = Status.Ready;
+            }
+
+            Location = reachedLocation;
+            return new object();
+        }
+
+        /// <summary>
+        /// Начать работать
+        /// </summary>
+        /// <returns>Результат</returns>
+        public Result<object, Error> StartWork()
+        {
+            if (Status == Status.Busy) return Errors.TryStartWorkingWhenAlreadyStarted();
+            Status = Status.Ready;
+            return new object();
+        }
+
+        /// <summary>
+        /// Взять работу
+        /// </summary>
+        /// <returns>Результат</returns>
+        public Result<object, Error> InWork()
+        {
+            if (Status == Status.NotAvailable) return Errors.TryAssignOrderWhenNotAvailable();
+            if (Status == Status.Busy) return Errors.TryAssignOrderWhenCourierHasAlreadyBusy();
+            Status = Status.Busy;
+            return new object();
+        }
+
+        /// <summary>
+        /// Завершить работу
+        /// </summary>
+        /// <returns>Результат</returns>
+        public Result<object, Error> CompleteOrder()
+        {
+            Status = Status.Ready;
+            return new object();
+        }
+
+        /// <summary>
+        /// Закончить работать
+        /// </summary>
+        /// <returns>Результат</returns>
+        public Result<object, Error> StopWork()
+        {
+            if (Status == Status.Busy) return Errors.TryStopWorkingWithIncompleteDelivery();
+            Status = Status.NotAvailable;
+            return new object();
+        }
+
+        /// <summary>
+        /// Рассчитать время до точки
+        /// </summary>
+        /// <param name="location">Конечное местоположение</param>
+        /// <returns>Результат</returns>
+        public Result<double, Error> CalculateTimeToLocation(Location location)
+        {
+            if (location == null) return GeneralErrors.ValueIsRequired(nameof(location));
+
+            var distance = Location.DistanceTo(location).Value;
+            var time = (double) distance / Transport.Speed;
+            return time;
+        }
+    }
 }

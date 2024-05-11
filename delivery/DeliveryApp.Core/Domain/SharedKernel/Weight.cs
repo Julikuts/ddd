@@ -1,31 +1,99 @@
-// Бизнес-правила Weight:
-
-// Weight - это вес, выраженный в килограммах
-// Нельзя задать нулевой или отрицательный вес
-// Нужно иметь возможность сравнивать Weight с другим
-// 2 Weight равны, если их значение в киллограммах равны, обеспечьте функционал проверки на эквивалентность
-// Нельзя изменять объект Weight после создания
-
-
+using System.Diagnostics.CodeAnalysis;
 using CSharpFunctionalExtensions;
+using Primitives;
 
 namespace DeliveryApp.Core.Domain.SharedKernel
 {
     /// <summary>
-    // Weight - это вес, выраженный в килограммах
+    ///     Вес
     /// </summary>
     public class Weight : ValueObject
     {
-        public int WeightValue { get; protected set; }
-        public Weight(int weight)
+        /// <summary>
+        ///     Значение
+        /// </summary>
+        public int Value { get; }
+
+        /// <summary>
+        ///     Ctr
+        /// </summary>
+        [ExcludeFromCodeCoverage]
+        private Weight()
+        { }
+
+        /// <summary>
+        ///     Ctr
+        /// </summary>
+        /// <param name="value">Значение в килограммах</param>
+        private Weight(int value)
         {
-            if (weight < 1) throw new Exception("Нельзя задавать отрицательный вес");
-            WeightValue = weight;
+            Value = value;
         }
 
+        /// <summary>
+        ///     Создание
+        /// </summary>
+        /// <param name="value">Значение в килограммах</param>
+        /// <returns>Результат</returns>
+        public static Result<Weight, Error> Create(int value)
+        {
+            if (value <= 0) return GeneralErrors.ValueIsRequired(nameof(value));
+            return new Weight(value);
+        }
+
+        /// <summary>
+        /// Сравнить два веса
+        /// </summary>
+        /// <param name="first">Вес 1</param>
+        /// <param name="second">Вес 2</param>
+        /// <returns>Результат</returns>
+        public static bool operator <(Weight first, Weight second)
+        {
+            return first.Value < second.Value;
+        }
+
+        /// <summary>
+        /// Сравнить два веса
+        /// </summary>
+        /// <param name="first">Вес 1</param>
+        /// <param name="second">Вес 2</param>
+        /// <returns>Результат</returns>
+        public static bool operator >(Weight first, Weight second)
+        {
+            return first.Value > second.Value;
+        }
+        
+        /// <summary>
+        /// Сравнить два веса
+        /// </summary>
+        /// <param name="first">Вес 1</param>
+        /// <param name="second">Вес 2</param>
+        /// <returns>Результат</returns>
+        public static bool operator >=(Weight first, Weight second)
+        {
+            return first.Value >= second.Value;
+        }
+
+        /// <summary>
+        /// Сравнить два веса
+        /// </summary>
+        /// <param name="first">Вес 1</param>
+        /// <param name="second">Вес 2</param>
+        /// <returns>Результат</returns>
+        public static bool operator <=(Weight first, Weight second)
+        {
+            return first.Value <= second.Value;
+        }
+
+        /// <summary>
+        /// Перегрузка для определения идентичности
+        /// </summary>
+        /// <returns>Результат</returns>
+        /// <remarks>Идентичность будет происходить по совокупности полей указанных в методе</remarks>
+        [ExcludeFromCodeCoverage]
         protected override IEnumerable<IComparable> GetEqualityComponents()
         {
-            yield return WeightValue;
+            yield return Value;
         }
     }
 }
