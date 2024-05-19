@@ -1,16 +1,17 @@
-using BasketConfirmed;
+
 using Confluent.Kafka;
 using MediatR;
 using Newtonsoft.Json;
+using OrderStatusChanged;
 
-namespace DeliveryApp.Api.Adapters.Kafka.BasketConfirmed;
+namespace DeliveryApp.Api.Adapters.Kafka.OrderStatusChanged;
 
-public class ConsumerService : BackgroundService
+public class OrderConsumerService : BackgroundService
 {
     private readonly IMediator _mediator;
     private readonly IConsumer<Ignore, string> _consumer;
     
-    public ConsumerService(IMediator mediator, string messageBrokerHost)
+    public OrderConsumerService(IMediator mediator, string messageBrokerHost)
     {
         _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         if (string.IsNullOrWhiteSpace(messageBrokerHost)) throw new ArgumentException(nameof(messageBrokerHost));
@@ -29,7 +30,7 @@ public class ConsumerService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        _consumer.Subscribe("basket.confirmed");
+        _consumer.Subscribe("order.status.changed");
         try
         {
             while (!cancellationToken.IsCancellationRequested)
@@ -43,7 +44,7 @@ public class ConsumerService : BackgroundService
                 }
 
                 Console.WriteLine($"Received message at {consumeResult.TopicPartitionOffset}: {consumeResult.Message.Value}");
-                var basketConfirmedIntegrationEvent = JsonConvert.DeserializeObject<BasketConfirmedIntegrationEvent>(consumeResult.Message.Value);
+                var orderStatusChangedIntegrationEvent = JsonConvert.DeserializeObject<OrderStatusChangedIntegrationEvent>(consumeResult.Message.Value);
                 
                 //Тут ваш Use Case
                 

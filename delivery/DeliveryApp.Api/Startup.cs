@@ -15,7 +15,7 @@ using DeliveryApp.Infrastructure.Adapters.Postgres;
 using MediatR;
 using Primitives;
 using Quartz;
-using DeliveryApp.Api.Adapters.Kafka.BasketConfirmed;
+
 
 namespace DeliveryApp.Api
 {
@@ -157,7 +157,8 @@ namespace DeliveryApp.Api
             // Message Broker
             var sp = services.BuildServiceProvider();
             var mediator = sp.GetService<IMediator>();
-            services.AddHostedService<ConsumerService>(x => new ConsumerService(mediator,messageBrokerHost));
+            services.AddHostedService<Adapters.Kafka.BasketConfirmed.BacketConsumerService>(x => new Adapters.Kafka.BasketConfirmed.BacketConsumerService(mediator,messageBrokerHost));
+            services.AddHostedService<Adapters.Kafka.OrderStatusChanged.OrderConsumerService>(x => new Adapters.Kafka.OrderStatusChanged.OrderConsumerService(mediator,messageBrokerHost));
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

@@ -33,8 +33,14 @@
 	  <ProjectReference Include="..\DeliveryApp.Infrastructure\DeliveryApp.Infrastructure.csproj" />
 	</ItemGroup>	
 	<ItemGroup>
-      <None Remove="Adapters\kafka\BacketConfirmed\Contract.proto" />
-      <Protobuf Include="Adapters\kafka\BacketConfirmed\Contract.proto">
+      <None Remove="Adapters\kafka\BacketConfirmed\BacketContract.proto" />
+      <Protobuf Include="Adapters\kafka\BacketConfirmed\BacketContract.proto">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Protobuf>
+    </ItemGroup>
+	<ItemGroup>
+      <None Remove="Adapters\kafka\OrderStatusChanged\OrderContract.proto" />
+      <Protobuf Include="Adapters\kafka\OrderStatusChanged\OrderContract.proto">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Protobuf>
     </ItemGroup>
