@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using CSharpFunctionalExtensions;
 using DeliveryApp.Core.Domain.CourierAggregate;
+using DeliveryApp.Core.Domain.OrderAggregate.DomainEvents;
 using DeliveryApp.Core.Domain.SharedKernel;
 using Primitives;
 
@@ -65,6 +66,9 @@ namespace DeliveryApp.Core.Domain.OrderAggregate
             Location = location;
             Weight = weight;
             Status = Status.Created;
+            
+            // отправляем сообщение
+            RaiseDomainEvent(new OrderCreatedDomainEvent(this));
         }
 
         /// <summary>
@@ -79,6 +83,7 @@ namespace DeliveryApp.Core.Domain.OrderAggregate
             if (orderId == Guid.Empty) return GeneralErrors.ValueIsRequired(nameof(orderId));
             if (location == null) return GeneralErrors.ValueIsRequired(nameof(location));
             if (weight == null) return GeneralErrors.ValueIsRequired(nameof(weight));
+            
             return new Order(orderId, location, weight);
         }
 
@@ -96,6 +101,12 @@ namespace DeliveryApp.Core.Domain.OrderAggregate
             CourierId = courier.Id;
             Status = Status.Assigned;
             courier.InWork();
+            
+
+            // Сервис доставки должен отправлять нотификации через сервис Notification (см схему выше):
+            // При назначении заказа на курьера
+            RaiseDomainEvent(new OrderAssignedDomainEvent(this));
+
 
             return new object();
         }
@@ -108,6 +119,11 @@ namespace DeliveryApp.Core.Domain.OrderAggregate
         {
             if (Status != Status.Assigned) return Errors.CantCompletedNotAssignedOrder();
             Status = Status.Completed;
+
+            // Сервис доставки должен отправлять нотификации через сервис Notification (см схему выше):
+            // При завершении заказа
+            RaiseDomainEvent(new OrderCompletedDomainEvent(this));
+
             return new object();
         }
     }

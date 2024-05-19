@@ -9,12 +9,12 @@ public class BacketConsumerService : BackgroundService
 {
     private readonly IMediator _mediator;
     private readonly IConsumer<Ignore, string> _consumer;
-    
+
     public BacketConsumerService(IMediator mediator, string messageBrokerHost)
     {
         _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         if (string.IsNullOrWhiteSpace(messageBrokerHost)) throw new ArgumentException(nameof(messageBrokerHost));
-        
+
         var consumerConfig = new ConsumerConfig
         {
             BootstrapServers = messageBrokerHost,
@@ -44,9 +44,20 @@ public class BacketConsumerService : BackgroundService
 
                 Console.WriteLine($"Received message at {consumeResult.TopicPartitionOffset}: {consumeResult.Message.Value}");
                 var basketConfirmedIntegrationEvent = JsonConvert.DeserializeObject<BasketConfirmedIntegrationEvent>(consumeResult.Message.Value);
-                
-                //Тут ваш Use Case
-                
+
+                //Сервис доставки должен обрабатывать сообщение о том что корзина была оформлена и создавать новый заказ.
+                var createOrderCommand = new Core.Application.UseCases.Commands.CreateOrder.Command(
+                                                                                                    new Guid(basketConfirmedIntegrationEvent.BasketId),
+                                                                                                    basketConfirmedIntegrationEvent.Address,
+                                                                                                    basketConfirmedIntegrationEvent.Weight);
+
+                var response = await _mediator.Send(createOrderCommand, cancellationToken);
+                if (!response)
+                {
+                    Console.WriteLine($"Error");
+                }
+
+
                 try
                 {
                     _consumer.StoreOffset(consumeResult);
