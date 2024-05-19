@@ -10,23 +10,24 @@ namespace DeliveryApp.Core.Application.UseCases.Commands.CreateOrder
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IOrderRepository _orderRepository;
+        private readonly IGeoClient _geoClient;
 
         /// <summary>
         /// Ctr
         /// </summary>
-        public Handler(IUnitOfWork unitOfWork, IOrderRepository orderRepository)
+        public Handler(IUnitOfWork unitOfWork, IOrderRepository orderRepository, IGeoClient geoClient)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
+             _geoClient = geoClient ?? throw new ArgumentNullException(nameof(geoClient));
         }
 
         public async Task<bool> Handle(Command message, CancellationToken cancellationToken)
         {
             //Получаем геопозицию из Geo (пока ставим фэйковое значение)
-            var locationCreateRandomResult= Location.CreateRandom();
-            if (locationCreateRandomResult.IsFailure) return false;
-            var location = locationCreateRandomResult.Value;
-
+            //Получаем геопозицию из Geo (пока ставим фэйковое значение)
+            var location = await _geoClient.GetGeolocationAsync(message.Address,cancellationToken);
+            
             //Создаем вес
             var weightCreateResult = Weight.Create(message.Weight);
             if (weightCreateResult.IsFailure) return false;

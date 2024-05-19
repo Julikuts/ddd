@@ -11,6 +11,11 @@ dotnet add package Newtonsoft.Json
 dotnet add package Swashbuckle.AspNetCore.Annotations
 dotnet add package Swashbuckle.AspNetCore.Newtonsoft
 dotnet add package Swashbuckle.AspNetCore.SwaggerUI
+
+dotnet add package Google.Protobuf
+dotnet add package Grpc.AspNetCore
+dotnet add package Grpc.Net.Client
+dotnet add package Grpc.Tools
 ```
 [Подробнее про dotnet cli](https://learn.microsoft.com/ru-ru/ef/core/cli/dotnet)
 

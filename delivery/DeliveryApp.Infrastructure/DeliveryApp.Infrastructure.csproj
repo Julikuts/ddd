@@ -13,6 +13,13 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Google.Protobuf" Version="3.26.1" />
+      <PackageReference Include="Grpc.AspNetCore" Version="2.62.0" />
+      <PackageReference Include="Grpc.Net.Client" Version="2.62.0" />
+      <PackageReference Include="Grpc.Tools" Version="2.63.0">
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        <PrivateAssets>all</PrivateAssets>
+      </PackageReference>
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.4" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.4">
         <PrivateAssets>all</PrivateAssets>
@@ -23,6 +30,13 @@
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Adapters\Grpc\GeoService\grpc.proto" />
+      <Protobuf Include="Adapters\Grpc\GeoService\grpc.proto">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Protobuf>
     </ItemGroup>
 
 </Project>
