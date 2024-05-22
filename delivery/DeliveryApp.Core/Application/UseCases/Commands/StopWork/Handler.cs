@@ -28,6 +28,9 @@ namespace DeliveryApp.Core.Application.UseCases.Commands.StopWork
             var courierStartWorkResult = courier.StopWork();
             if (courierStartWorkResult.IsFailure) return false;
 
+            // Сервис доставки должен отправлять нотификации через сервис Notification (см схему выше):
+            // При завершении заказа
+
             //Сохраняем
             _courierRepository.Update(courier);
             return await _unitOfWork.SaveEntitiesAsync(cancellationToken);

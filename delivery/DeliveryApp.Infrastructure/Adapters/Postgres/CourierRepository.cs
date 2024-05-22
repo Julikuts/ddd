@@ -1,12 +1,15 @@
 ﻿using DeliveryApp.Core.Domain.CourierAggregate;
 using DeliveryApp.Core.Ports;
 using Microsoft.EntityFrameworkCore;
+using Primitives;
 
 namespace DeliveryApp.Infrastructure.Adapters.Postgres
 {
     public class CourierRepository : ICourierRepository
     {
         private readonly ApplicationDbContext _dbContext;
+
+        public IUnitOfWork UnitOfWork => (IUnitOfWork)_dbContext;
 
         public CourierRepository(ApplicationDbContext dbContext)
         {

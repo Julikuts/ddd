@@ -15,6 +15,9 @@ using DeliveryApp.Infrastructure.Adapters.Postgres;
 using MediatR;
 using Primitives;
 using Quartz;
+using DeliveryApp.Core.Domain.OrderAggregate.DomainEvents;
+using DeliveryApp.Core.Application.DomainEventHandlers;
+
 
 namespace DeliveryApp.Api
 {
@@ -63,7 +66,7 @@ namespace DeliveryApp.Api
                     options.EnableSensitiveDataLogging();
                 }
             );
-            services.AddTransient<IUnitOfWork, UnitOfWork>();
+            services.AddTransient<IUnitOfWork, UnitOfWorkV2>();
 
             // Ports & Adapters
             services.AddTransient<ICourierRepository, CourierRepository>();
@@ -153,7 +156,16 @@ namespace DeliveryApp.Api
                        configure.UseMicrosoftDependencyInjectionJobFactory();
             });
             services.AddQuartzHostedService();
-              }
+             // MediatR Domain Event Handlers
+            services.AddTransient<INotificationHandler<OrderCreatedDomainEvent>,OrderCreatedDomainEventHandler>();
+            services.AddTransient<INotificationHandler<OrderAssignedDomainEvent>,OrderAssignedDomainEventHandler>();
+            services.AddTransient<INotificationHandler<OrderCompletedDomainEvent>,OrderCompletedDomainEventHandler>();
+            
+            // Message Broker
+            var sp = services.BuildServiceProvider();
+            var mediator = sp.GetService<IMediator>();
+            services.AddHostedService<Adapters.Kafka.BasketConfirmed.BacketConsumerService>(x => new Adapters.Kafka.BasketConfirmed.BacketConsumerService(mediator,messageBrokerHost));
+        }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
