@@ -66,7 +66,7 @@ namespace DeliveryApp.Api
                     options.EnableSensitiveDataLogging();
                 }
             );
-            services.AddTransient<IUnitOfWork, UnitOfWork>();
+            services.AddTransient<IUnitOfWork, UnitOfWorkV2>();
 
             // Ports & Adapters
             services.AddTransient<ICourierRepository, CourierRepository>();

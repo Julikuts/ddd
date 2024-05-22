@@ -71,7 +71,7 @@ namespace DeliveryApp.IntegrationTests.Repositories
 
             //Act
             var courierRepository = new CourierRepository(_context);
-            var unitOfWork = new UnitOfWork(_context);
+            var unitOfWork = new UnitOfWorkV2(_context);
             courierRepository.Add(courier);
             await unitOfWork.SaveEntitiesAsync();
 
@@ -89,7 +89,7 @@ namespace DeliveryApp.IntegrationTests.Repositories
             var courier = courierCreateResult.Value;
 
             var courierRepository = new CourierRepository(_context);
-            var unitOfWork = new UnitOfWork(_context);
+            var unitOfWork = new UnitOfWorkV2(_context);
             courierRepository.Add(courier);
             await unitOfWork.SaveEntitiesAsync();
 
@@ -115,7 +115,7 @@ namespace DeliveryApp.IntegrationTests.Repositories
 
             //Act
             var courierRepository = new CourierRepository(_context);
-            var unitOfWork = new UnitOfWork(_context);
+            var unitOfWork = new UnitOfWorkV2(_context);
             courierRepository.Add(courier);
             await unitOfWork.SaveEntitiesAsync();
 
@@ -139,7 +139,7 @@ namespace DeliveryApp.IntegrationTests.Repositories
             courier2.StartWork();
 
             var courierRepository = new CourierRepository(_context);
-            var unitOfWork = new UnitOfWork(_context);
+            var unitOfWork = new UnitOfWorkV2(_context);
             courierRepository.Add(courier1);
             courierRepository.Add(courier2);
             await unitOfWork.SaveEntitiesAsync();

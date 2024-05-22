@@ -81,7 +81,7 @@ namespace DeliveryApp.IntegrationTests.Repositories
 
             //Act
             var orderRepository = new OrderRepository(_context);
-            var unitOfWork = new UnitOfWork(_context);
+            var unitOfWork = new UnitOfWorkV2(_context);
             
             orderRepository.Add(order);
             await unitOfWork.SaveEntitiesAsync();
@@ -103,7 +103,7 @@ namespace DeliveryApp.IntegrationTests.Repositories
             var orderRepository = new OrderRepository(_context);
             orderRepository.Add(order);
             
-            var unitOfWork = new UnitOfWork(_context);
+            var unitOfWork = new UnitOfWorkV2(_context);
             await unitOfWork.SaveEntitiesAsync();
 
             //Act
@@ -128,7 +128,7 @@ namespace DeliveryApp.IntegrationTests.Repositories
             var orderRepository = new OrderRepository(_context);
             orderRepository.Add(order);
             
-            var unitOfWork = new UnitOfWork(_context);
+            var unitOfWork = new UnitOfWorkV2(_context);
             await unitOfWork.SaveEntitiesAsync();
 
             //Assert
@@ -154,7 +154,7 @@ namespace DeliveryApp.IntegrationTests.Repositories
             orderRepository.Add(order1);
             orderRepository.Add(order2);
             
-            var unitOfWork = new UnitOfWork(_context);
+            var unitOfWork = new UnitOfWorkV2(_context);
             await unitOfWork.SaveEntitiesAsync();
 
             //Act
