@@ -1,69 +1,114 @@
-// Бизнес-правила Order:
+﻿using System.Diagnostics.CodeAnalysis;
+using CSharpFunctionalExtensions;
 using DeliveryApp.Core.Domain.CourierAggregate;
 using DeliveryApp.Core.Domain.SharedKernel;
 using Primitives;
 
 namespace DeliveryApp.Core.Domain.OrderAggregate
 {
-    // Order - это заказ, он состоит из:
-
+    /// <summary>
+    ///     Заказ
+    /// </summary>
     public class Order : Aggregate
     {
-
-        // CourierId (идентификатор исполнителя(курьера))
-        public Guid? CourierId { get; protected set; }
-        // Location (местоположение, куда нужно доставить заказ)
-        public Location Location { get; protected set; }
-        // Weight (вес заказа)
-        public Weight Weight { get; protected set; }
-
-        // Status (статус заказа)
-        public OrderStatusEnum OrderStatus { get; protected set; }
-
-        public Order(Guid id, Location location, Weight weight)
+        public static class Errors
         {
-            if (location is null)
+            public static Error CantCompletedNotAssignedOrder()
             {
-                throw new ArgumentNullException(nameof(location));
-            }
-
-            if (weight is null)
-            {
-                throw new ArgumentNullException(nameof(weight));
+                return new($"{nameof(Order).ToLowerInvariant()}.cant.completed.not.sssigned.order",
+                    "Нельза завершить заказ, который не был назначен");
             }
             
-            Id = id;
+            public static Error CantAssignOrderToBusyCourier(Guid courierId)
+            {
+                return new($"{nameof(Order).ToLowerInvariant()}.cant.assign.order.to.busy.courier",
+                    $"Нельза назначить заказ на курьера, который занят. Id курьера = {courierId}");
+            }
+        }
+
+        /// <summary>
+        /// Идентификатор исполнителя (курьера)
+        /// </summary>
+        public Guid? CourierId { get; private set; }
+
+        /// <summary>
+        /// Местоположение, куда нужно доставить заказ
+        /// </summary>
+        public Location Location { get; private set; }
+
+        /// <summary>
+        /// Вес
+        /// </summary>
+        public Weight Weight { get; private set; }
+
+        /// <summary>
+        /// Статус
+        /// </summary>
+        public Status Status { get; private set; }
+
+        /// <summary>
+        /// Ctr
+        /// </summary>
+        [ExcludeFromCodeCoverage]
+        private Order()
+        { }
+
+        /// <summary>
+        ///     Ctr
+        /// </summary>
+        /// <param name="orderId">Идентификатор заказа</param>
+        /// <param name="location">Геопозиция</param>
+        /// <param name="weight">Вес</param>
+        private Order(Guid orderId, Location location, Weight weight)
+        {
+            Id = orderId;
             Location = location;
             Weight = weight;
-            OrderStatus = OrderStatusEnum.Created;
+            Status = Status.Created;
         }
-       
-        // Заказ может быть назначен на курьера
-        // При назначении заказ переходит в статус Assigned (назначен на курьера),
-        // а в поле CourierId прописывается Id курьера
-        // Если заказ назначен на курьера, то курьер переходит в статус Busy
 
-        public Courier Assign(Courier courier)
+        /// <summary>
+        /// Factory Method
+        /// </summary>
+        /// <param name="orderId">Идентификатор заказа</param>
+        /// <param name="location">Геопозиция</param>
+        /// <param name="weight">Вес</param>
+        /// <returns>Результат</returns>
+        public static Result<Order, Error> Create(Guid orderId, Location location, Weight weight)
         {
-            if (courier.CourierStatus == CourierStatusEnum.Busy ||
-            courier.CourierStatus == CourierStatusEnum.NotAvailable)
-                throw new Exception("Курьер не доступен");
-            courier.CourierStart();
+            if (orderId == Guid.Empty) return GeneralErrors.ValueIsRequired(nameof(orderId));
+            if (location == null) return GeneralErrors.ValueIsRequired(nameof(location));
+            if (weight == null) return GeneralErrors.ValueIsRequired(nameof(weight));
+            return new Order(orderId, location, weight);
+        }
+
+        /// <summary>
+        /// Назначить заказ на курьера
+        /// </summary>
+        /// <param name="courier">Курьер</param>
+        /// <returns>Результат</returns>
+        public Result<object, Error> AssignToCourier(Courier courier)
+        {
+            if (courier == null) return GeneralErrors.ValueIsRequired(nameof(courier));
+            if (courier.Status == CourierAggregate.Status.Busy)
+                return Errors.CantAssignOrderToBusyCourier(courier.Id);
+
             CourierId = courier.Id;
-            OrderStatus = OrderStatusEnum.Assigned;
-            return courier;
-        }
-        // Заказ может быть завершен
-        // При завершении заказ переходит в статус Completed (завершен)
-        // А исполнитель становиться свободен (Ready)
-        // Завершить можно только назначенный ранее заказ
-        public void Complete()
-        {
-            if (OrderStatus != OrderStatusEnum.Assigned)
-                throw new Exception("Невозможно завершить, заказ не взят в работу.");
-            OrderStatus = OrderStatusEnum.Completed;
+            Status = Status.Assigned;
+            courier.InWork();
+
+            return new object();
         }
 
+        /// <summary>
+        /// Завершить выполнение заказа
+        /// </summary>
+        /// <returns>Результат</returns>
+        public Result<object, Error> Complete()
+        {
+            if (Status != Status.Assigned) return Errors.CantCompletedNotAssignedOrder();
+            Status = Status.Completed;
+            return new object();
+        }
     }
 }
-

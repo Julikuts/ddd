@@ -1,14 +1,78 @@
-# https://docs.gitlab.com/ee/ci/docker/using_docker_build.html
-image: docker:24.0.5
+image: docker:20.10.16
+
+variables:
+  # Замените этот путь на свой Registry
+  REGISTRY_PATH: registry.gitlab.com/microarch-ru/ddd-in-practice/templates/delivery-template
+  APP_NAME: DeliveryApp
 
 services:
-  - docker:24.0.5-dind
+  - docker:20.10.16-dind
 
 stages:
   - build
+  - tests
 
-# Собираем Docker Image
+# Собираем Docker Image и помещаем в Gitlab Registry (хранилище артефактов)
 docker-build:
   stage: build
+  except:
+    refs:
+      - tags
+  before_script:
+    - docker login $REGISTRY_PATH -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD
   script:
-    - docker build .
+    - docker build -t $REGISTRY_PATH:latest .
+    - docker push $REGISTRY_PATH:latest
+
+unit tests:
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  stage: tests
+  variables:
+    test_path: "./Tests/$APP_NAME.UnitTests"
+  script:
+    - "cd $test_path"
+    - dotnet test
+
+integration tests:
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  stage: tests
+  variables:
+    test_path: "./Tests/$APP_NAME.IntegrationTests"
+    # Instruct Testcontainers to use the daemon of DinD.
+    DOCKER_HOST: "tcp://docker:2375"
+    # Instruct Docker not to start over TLS.
+    DOCKER_TLS_CERTDIR: ""
+    # Improve performance with overlayfs.
+    DOCKER_DRIVER: overlay2
+  services:
+    - name: docker:dind
+      # explicitly disable tls to avoid docker startup interruption
+      command: ["--tls=false"]
+  script:
+    - dotnet restore $APP_NAME.sln -s 'https://api.nuget.org/v3/index.json' -s $NUGET_SOURCE
+    - "cd $test_path"
+    - dotnet test
+  tags:
+    - docker
+
+component tests:
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  stage: tests
+  variables:
+    test_path: "./Tests/$APP_NAME.ComponentTests"
+    # Instruct Testcontainers to use the daemon of DinD.
+    DOCKER_HOST: "tcp://docker:2375"
+    # Instruct Docker not to start over TLS.
+    DOCKER_TLS_CERTDIR: ""
+    # Improve performance with overlayfs.
+    DOCKER_DRIVER: overlay2
+  services:
+    - name: docker:dind
+      # explicitly disable tls to avoid docker startup interruption
+      command: ["--tls=false"]
+  script:
+    - dotnet restore $APP_NAME.sln -s 'https://api.nuget.org/v3/index.json' -s $NUGET_SOURCE
+    - "cd $test_path"
+    - dotnet test
+  tags:
+    - docker      

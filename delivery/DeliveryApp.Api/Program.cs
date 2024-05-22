@@ -1,3 +1,6 @@
+using DeliveryApp.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+
 namespace DeliveryApp.Api
 {
     public class Program
@@ -7,7 +10,9 @@ namespace DeliveryApp.Api
             var host = CreateHostBuilder(args).Build();
             using (var scope = host.Services.CreateScope())
             {
-
+                //Накатываем миграции на БД, если есть
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                db.Database.Migrate();
             }
             host.Run();
         }
